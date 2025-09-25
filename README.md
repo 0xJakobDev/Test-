@@ -1,4 +1,4 @@
-# I Protocol V5
+# Torque Protocol 
 
 **A Next-Generation Blockchain Protocol with Mathematical Consensus and Sybil-Resistant Participation**
 
@@ -122,33 +122,7 @@ CHALLENGES = 96                 // Security parameter (2^-96 cheat probability)
 
 - **Throughput**: Deterministic based on admission logic
 - **Latency**: 100ms finality, 1000ms settlement
-- **Memory**: 512 MiB per LAMEq-X participant
-- **Verification**: Sub-millisecond header validation
-- **Scalability**: Constant verification time regardless of participants
-
-## Project Structure
-
-```
-i-protocol-v5/
-├── crypto/                 # Cryptographic foundation library
-│   ├── src/lib.rs         # Hash functions, signatures, encodings
-│   └── Cargo.toml
-├── engines/               # Core protocol engines
-│   ├── lameqx/           # Engine 1: Sybil resistance
-│   ├── vdf/              # Engine 2: Verifiable delay
-│   ├── mars/             # Engine 3: Mathematical resolution
-│   ├── pada/             # Engine 4: Protocol admission
-│   └── tokenomics/       # Engine T: Economic model
-├── integration/          # Engine coordination layer
-│   ├── src/
-│   │   ├── lib.rs        # Protocol state and orchestration
-│   │   └── interface.rs  # Public API
-│   └── Cargo.toml
-├── examples/             # Demonstration programs
-│   ├── src/main.rs       # CLI interface for demos
-│   └── Cargo.toml
-├── Cargo.toml            # Workspace configuration
-└── README.md             # This file
+- **Memory**: 512 MiB per LAMEq-X .md             # This file
 ```
 
 ## Getting Started
