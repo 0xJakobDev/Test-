@@ -323,4 +323,4 @@ For questions, suggestions, or collaboration opportunities:
 
 ---
 
-**I Protocol V5** - *Mathematical Consensus for the Next Generation*
+**Torque Protocol ** - *Mathematical Consensus for the Next Generation*
