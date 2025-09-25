@@ -1,4 +1,4 @@
-# Torque Protocol 
+# Inox Protocol 
 
 **A Next-Generation Blockchain Protocol with Mathematical Consensus and Sybil-Resistant Participation**
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-Torque Protocol  is a revolutionary blockchain protocol that achieves consensus through mathematical determinism rather than traditional proof-of-work or proof-of-stake mechanisms. The protocol integrates five specialized engines working in harmony to provide unbiasable randomness, Sybil resistance, deterministic admission, mathematical resolution, and precise tokenomics.
+Inox Protocol  is a revolutionary blockchain protocol that achieves consensus through mathematical determinism rather than traditional proof-of-work or proof-of-stake mechanisms. The protocol integrates five specialized engines working in harmony to provide unbiasable randomness, Sybil resistance, deterministic admission, mathematical resolution, and precise tokenomics.
 
 ### Key Innovations
 
@@ -20,7 +20,7 @@ Torque Protocol  is a revolutionary blockchain protocol that achieves consensus 
 
 ## Architecture
 
-Torque Protocol  consists of five rinterconnected engines operating on a 100ms slot cadence:
+Inox Protocol  consists of five rinterconnected engines operating on a 100ms slot cadence:
 
 ### Engine 1: LAMEq-X (Latency-Adjusted Memory-Egalitarian Quanta Execution)
 
@@ -323,4 +323,4 @@ For questions, suggestions, or collaboration opportunities:
 
 ---
 
-**Torque Protocol ** - *Mathematical Consensus for the Next Generation*
+**Inox Protocol ** - *Mathematical Consensus for the Next Generation*
