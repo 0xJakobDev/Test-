@@ -1,5 +1,5 @@
 [package]
-name = "Toquesprotocol-crypto"
+name = "Inoxprotocol-crypto"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
