@@ -1,0 +1,29 @@
+[package]
+name = "Toquesprotocol-crypto"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Cryptographic foundations for I Protocol V5 - SHA3-256, Ed25519, domain-tagged hashing"
+readme = "../README.md"
+keywords = ["cryptography", "blockchain", "consensus", "ed25519", "sha3"]
+categories = ["cryptography", "algorithms"]
+
+[dependencies]
+# Core cryptography
+sha3.workspace = true
+ed25519-dalek.workspace = true
+rand_core.workspace = true
+rand.workspace = true
+
+# Utilities
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+criterion.workspace = true
+
+[features]
+default = ["std"]
+std = []
