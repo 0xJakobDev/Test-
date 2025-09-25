@@ -1,5 +1,5 @@
 [package]
-name = "asterprotocol-crypto"
+name = "Toquesprotocol-crypto"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
