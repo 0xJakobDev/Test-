@@ -8,7 +8,7 @@
 
 ## Overview
 
-I Protocol V5 is a revolutionary blockchain protocol that achieves consensus through mathematical determinism rather than traditional proof-of-work or proof-of-stake mechanisms. The protocol integrates five specialized engines working in harmony to provide unbiasable randomness, Sybil resistance, deterministic admission, mathematical resolution, and precise tokenomics.
+Torque Protocol  is a revolutionary blockchain protocol that achieves consensus through mathematical determinism rather than traditional proof-of-work or proof-of-stake mechanisms. The protocol integrates five specialized engines working in harmony to provide unbiasable randomness, Sybil resistance, deterministic admission, mathematical resolution, and precise tokenomics.
 
 ### Key Innovations
 
@@ -20,7 +20,7 @@ I Protocol V5 is a revolutionary blockchain protocol that achieves consensus thr
 
 ## Architecture
 
-I Protocol V5 consists of five interconnected engines operating on a 100ms slot cadence:
+Torque Protocol  consists of five rinterconnected engines operating on a 100ms slot cadence:
 
 ### Engine 1: LAMEq-X (Latency-Adjusted Memory-Egalitarian Quanta Execution)
 
