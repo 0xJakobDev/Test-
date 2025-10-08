@@ -1,0 +1,23 @@
+{
+  "name": "solana-consensus",
+  "version": "1.0.2",
+  "description": "Proof of staked authority consenus mechanism for spl token",
+  "main": "solana-consensus.js",
+  "scripts": {
+    "test": "node ./test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamesbachini/solevm.git"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^0.46.0",
+    "buffer-layout": "^1.2.0"
+  },
+  "author": "James Bachini",
+  "homepage": "https://solevm.com",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/jamesbachini/solevm/issues"
+  }
+}
