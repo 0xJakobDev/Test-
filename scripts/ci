@@ -1,0 +1,287 @@
+#!/usr/bin/env bash
+
+# Include the CI utils functions
+. scripts/build_utils.sh
+. scripts/ci_utils.sh
+
+set -x
+set -e
+
+# Init platform variables
+init_platform
+
+echo "running against commit: "`git log --oneline --no-decorate -n 1`
+
+function _setup_client() {
+    pushd client
+    python3 -m venv env
+    . env/bin/activate
+    pip install --upgrade pip --progress-bar off
+    pip install --upgrade setuptools wheel
+    make setup
+
+    deactivate
+    popd
+}
+
+function check_format() {
+    scripts/format
+    git diff --no-ext-diff | head -n 20 > format_errors
+    num_lines=`cat format_errors | wc -l`
+    if [ "${num_lines}" != "0" ] ; then
+        echo CODE FORMATTING ERRORS:
+        cat format_errors
+        exit 1
+    fi
+
+    # Perform the check for copyright notices here
+    scripts/check-copyright
+}
+
+function check_contracts() {
+    # Setup the zeth_contracts dir
+    ganache_setup
+
+    # Run checks in zeth_contracts
+    pushd zeth_contracts
+    npm install
+    npm run check
+    popd # zeth_contracts
+
+    # Run contract tests (in python)
+    _setup_client
+
+    ganache_start
+
+    pushd client
+    . env/bin/activate
+    make test_contracts
+    deactivate
+    popd
+
+    ganache_stop
+}
+
+function check_client() {
+    _setup_client
+
+    pushd client
+    . env/bin/activate
+
+    make check
+
+    deactivate
+    popd
+}
+
+function check_cpp() {
+    apk add cppcheck
+    cppcheck --version
+
+    # Configure and run clang-tidy cppcheck
+    mkdir -p build
+    pushd build
+    cmake -DUSE_CPP_CHECK=ON ..
+    make VERBOSE=1 cppcheck -j 5
+    popd
+}
+
+function mpc_tests() {
+
+    # These commands are only for the GROTH16 config
+    if ! [ "${CI_ZKSNARK}" == "GROTH16" ] ; then
+        return
+    fi
+    if ! [ "${CI_CURVE}" == "ALT_BN128" ] ; then
+        return
+    fi
+
+    # Setup the mpc python env and install dependencies
+    scripts/mpc-setup
+
+    # Execute checks on mpc python code
+    pushd mpc
+    . env/bin/activate
+    make check
+    deactivate
+    popd
+
+    # Execute the test scripts for pot-process, mpc, mpc server and client
+    scripts/test-pot-process
+    scripts/test-phase2
+    scripts/test-mpc-contributors-from-csv
+    scripts/test-mpc-server-phase2
+}
+
+function prover_tests() {
+
+    # Native code is built.  Setup client and ganache.
+    ganache_setup
+    _setup_client
+
+    # Start servers
+    ganache_start
+    prover_server_start
+
+    # Enter client env and run prover test scripts
+    . client/env/bin/activate
+    python -m test_commands.test_ether_mixing GROTH16
+    python -m test_commands.test_erc_token_mixing GROTH16
+    deactivate
+
+    # Stop servers
+    prover_server_stop
+    ganache_stop
+}
+
+function integration_tests() {
+
+    # Native code is built.  Setup client and ganache.
+    ganache_setup
+    _setup_client
+
+    # Start servers
+    ganache_start
+    prover_server_start
+
+    # Enter client env and run client test script
+    . client/env/bin/activate
+    ./scripts/test-zeth-cli
+    deactivate
+
+    # Stop servers
+    prover_server_stop
+    ganache_stop
+}
+
+function build() {
+
+    cpp_build_setup
+
+    # Additional compilation flags
+    cxx_flags="-Werror"
+
+    if [ "${platform}" == "Darwin" ] ; then
+        openssl_path=$(brew --prefix openssl)
+        export PKG_CONFIG_PATH="${openssl_path}/lib/pkgconfig"
+        export LIBRARY_PATH="${openssl_path}/lib"
+        export LDFLAGS="-L/usr/local/lib -L${openssl_path}/lib"
+        export CPPFLAGS="-I/usr/local/include -I${openssl_path}/include"
+
+        cxx_flags="${cxx_flags} -I${openssl_path}/include"
+        cxx_flags="${cxx_flags} -Wno-deprecated-declarations"
+
+        which clang
+        which clang++
+    fi
+
+    cmake_flags="-DCMAKE_BUILD_TYPE=${CI_CONFIG} -DZETH_SNARK=${CI_ZKSNARK}"
+    cmake_flags="${cmake_flags} -DZETH_CURVE=${CI_CURVE}"
+    # Switch off slow tests unless CI_FULL_TESTS == 1
+    if ! [ "${CI_FULL_TESTS}" == "1" ] ; then
+        cmake_flags="${cmake_flags} -DFAST_TESTS_ONLY=ON"
+    fi
+    # Use ccache if available
+    if (which ccache) ; then
+        cmake_flags="${cmake_flags} -DCMAKE_C_COMPILER_LAUNCHER=ccache"
+    fi
+
+    # Build and run unit tests
+    . setup_env.sh
+
+    mkdir -p build
+    cd build
+    cmake                                    \
+        ${cmake_flags}                       \
+        -DCMAKE_CXX_FLAGS="${cxx_flags}"     \
+        ..
+
+    make -j 2 VERBOSE=1 all build_tests
+    CTEST_OUTPUT_ON_FAILURE=1 make -j 2 check
+    cd ..
+
+    if [ "${CI_MPC_TESTS}" == "1" ] ; then
+        mpc_tests
+    fi
+
+    if [ "${CI_PROVER_TESTS}" == "1" ] ; then
+        prover_tests
+    fi
+
+    if [ "${CI_INTEGRATION_TESTS}" == "1" ] ; then
+        integration_tests
+    fi
+}
+
+function ci_setup() {
+
+    # The base docker image we use is Alpine
+    # See: https://www.alpinelinux.org/
+    if [ "${platform}" == "Linux" ] ; then
+
+        if (which apk) ; then
+
+            # `py3-virtualenv` depends on `python3` which installs the latest
+            # version of python3.
+            # See: https://pkgs.alpinelinux.org/package/edge/main/x86/python3
+            # https://build.alpinelinux.org/buildlogs/build-edge-x86/main/python3/python3-3.8.2-r6.log
+            apk add \
+                py3-virtualenv \
+                libffi-dev \
+                python3-dev
+
+            # Install openssl for the mpc tests
+            apk add openssl
+        else
+            sudo apt update
+            sudo apt install python3-venv
+        fi
+
+    fi
+}
+
+ci_task=$1
+
+echo ci_task = ${ci_task}
+echo CI_CONFIG=${CI_CONFIG}
+echo CI_ZKSNARK=${CI_ZKSNARK}
+echo CI_CURVE=${CI_CURVE}
+echo CI_CHECK_FORMAT=${CI_CHECK_FORMAT}
+echo CI_EVENT_NAME=${CI_EVENT_NAME}
+echo CI_FULL_TEST=${CI_FULL_TESTS}
+echo CI_MPC_TESTS=${CI_MPC_TESTS}
+echo CI_PROVER_TESTS=${CI_PROVER_TESTS}
+echo CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS}
+
+if [ "${CI_CHECK_FORMAT}" == "1" ] ; then
+    check_format
+fi
+
+if [ "${CI_ZKSNARK}" == "" ] ; then
+    CI_ZKSNARK="GROTH16"
+fi
+
+if [ "${CI_CURVE}" == "" ] ; then
+   CI_CURVE="ALT_BN128"
+fi
+
+# The CI_USE_DOCKER variable determines whether we should
+# re-execute the script in the docker container with CI_USE_DOCKER=0
+if [ "${CI_USE_DOCKER}" == "1" ] ; then
+    docker pull clearmatics/zeth-base:latest
+    docker build -f Dockerfile-dev -t zeth-dev .
+    docker run \
+           -t \
+           -p 50051:50051 \
+           --name zeth \
+           --env CI_CONFIG=${CI_CONFIG} \
+           --env CI_ZKSNARK=${CI_ZKSNARK} \
+           --env CI_CURVE=${CI_CURVE} \
+           --env CI_FULL_TESTS=${CI_FULL_TESTS} \
+           --env CI_MPC_TESTS=${CI_MPC_TESTS} \
+           --env CI_INTEGRATION_TESTS=${CI_INTEGRATION_TESTS} \
+           zeth-dev:latest $0 ${ci_task}
+else
+    ci_setup
+    ${ci_task}
+fi
