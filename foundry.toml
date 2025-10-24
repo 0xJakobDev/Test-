@@ -1,0 +1,19 @@
+[profile.default]
+src = "src"
+out = "out"
+libs = ["lib"]
+remappings = [
+    "@uniswap/v4-core/=lib/v4-core/",
+    "v4-core/=lib/v4-core/contracts/",
+    "v4-periphery/=lib/v4-periphery/contracts/"
+]
+
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
+# foundry.toml
+
+solc_version = '0.8.26'
+evm_version = "cancun"
+optimizer_runs = 800
+via_ir = false
+ffi = true
