@@ -5,7 +5,7 @@ import getMyBalance from '../utils/getMyBalance';
 const USER_ADDRESS = ENV.USER_ADDRESS;
 const PROXY_WALLET = ENV.PROXY_WALLET;
 
-const test = async (clobClient: ClobClient) => {
+const test = async (clobClient: ClobClient) => 
     // const markets = await clobClient.getMarket(
     //     '0x834b371fe993e95cd1aa98a29e77794d5ff6dcaddf71115a6ad522b4b64ec165'
     // );
